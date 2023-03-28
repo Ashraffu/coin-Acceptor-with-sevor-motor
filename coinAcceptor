@@ -1,0 +1,41 @@
+#include <Servo.h>
+
+const int COIN_COUNTER_PIN = 2; // The coin counter output pin on the HX-916
+const int SERVO_PIN = 3; // The pin connected to the servo motor
+const unsigned int COIN_VALUE_TO_OPEN_GATE = 1; // The value of the coin that opens the gate
+
+unsigned long coinCounterValue = 0; // The current coin counter value
+unsigned long totalCoinValue = 0; // The total value of coins inserted
+Servo gateServo; // Create a Servo object to control the servo motor
+
+void setup() {
+  pinMode(COIN_COUNTER_PIN, INPUT);
+  gateServo.attach(SERVO_PIN); // Attach the servo to the SERVO_PIN
+  gateServo.write(0); // Move the servo to the closed position
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Wait for a coin to be inserted
+  while (pulseIn(COIN_COUNTER_PIN, HIGH) == 0) {
+    delay(10); // Wait for 10ms between checks
+  }
+
+  // Coin has been inserted, increment the coin counter value and total coin value
+  coinCounterValue += 1;
+  totalCoinValue += 200;
+
+  // Check if the total coin value is greater than or equal to the threshold to open the gate
+  if (totalCoinValue >= COIN_VALUE_TO_OPEN_GATE) {
+    // Total coin value is sufficient to open the gate, move the servo
+    gateServo.write(90); // Move the servo to the open position
+    delay(1000); // Wait for 1 second to keep the gate open
+    gateServo.write(0); // Move the servo to the closed position
+    totalCoinValue = 0; // Reset the total coin value
+    Serial.println("Gate opened"); // Print a message to the serial monitor
+  }
+  
+  // Display the total coin value on the serial monitor
+  Serial.print("Total coin value: ");
+  Serial.println(totalCoinValue);
+}
